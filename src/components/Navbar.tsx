@@ -16,19 +16,33 @@ export default function Navbar() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/auth/me")
-      .then((res) => (res.ok ? res.json() : { user: null }))
-      .then((data: { user: CurrentUser | null }) => {
-        if (!cancelled) setUser(data.user);
-      })
-      .catch(() => {
-        if (!cancelled) setUser(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const loadUser = () => {
+      fetch("/api/auth/me")
+        .then((res) => (res.ok ? res.json() : { user: null }))
+        .then((data: { user: CurrentUser | null }) => {
+          if (!cancelled) setUser(data.user);
+        })
+        .catch(() => {
+          if (!cancelled) setUser(null);
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    };
+
+    loadUser();
+
+    const handleAuthChanged = () => {
+      setLoading(true);
+      // Defer reloading the user to avoid synchronous setState in the effect body
+      setTimeout(loadUser, 0);
+    };
+
+    window.addEventListener("auth-changed", handleAuthChanged);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("auth-changed", handleAuthChanged);
     };
   }, []);
 

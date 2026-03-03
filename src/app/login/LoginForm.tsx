@@ -29,6 +29,9 @@ export default function LoginForm() {
         setError(json.error ?? "Failed to login");
         return;
       }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("auth-changed"));
+      }
       router.push(redirectTo);
     } catch {
       setError("Something went wrong. Please try again.");
