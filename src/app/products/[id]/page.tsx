@@ -16,6 +16,7 @@ export default function ProductDetailPage({
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [id, setId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -43,6 +44,31 @@ export default function ProductDetailPage({
       alert("Failed to delete product");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!id) return;
+    setAddingToCart(true);
+    try {
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: id, quantity: 1 }),
+      });
+      if (res.status === 401) {
+        router.push(`/login?redirect=/products/${id}`);
+        return;
+      }
+      if (!res.ok) {
+        alert("Failed to add to cart");
+      } else {
+        router.push("/cart");
+      }
+    } catch {
+      alert("Failed to add to cart");
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -99,9 +125,17 @@ export default function ProductDetailPage({
               {product.description}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+                className="rounded-full bg-stone-900 px-5 py-2.5 font-medium text-white transition hover:bg-stone-800 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200"
+              >
+                {addingToCart ? "Adding…" : "Add to cart"}
+              </button>
               <Link
                 href={`/products/${product.id}/edit`}
-                className="rounded-full bg-stone-900 px-5 py-2.5 font-medium text-white transition hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200"
+                className="rounded-full border border-stone-300 bg-white px-5 py-2.5 font-medium text-stone-800 transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100 dark:hover:bg-stone-800"
               >
                 Edit
               </Link>

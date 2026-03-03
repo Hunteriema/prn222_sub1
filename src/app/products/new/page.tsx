@@ -18,6 +18,10 @@ export default function NewProductPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (res.status === 401) {
+      router.push("/login?redirect=/products/new");
+      return;
+    }
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       throw new Error(json.error ?? "Failed to create product");

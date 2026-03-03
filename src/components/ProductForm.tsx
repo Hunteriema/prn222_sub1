@@ -47,7 +47,7 @@ export default function ProductForm({
         price: priceNum,
         image: image.trim() || undefined,
       });
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);

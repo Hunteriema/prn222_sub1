@@ -23,11 +23,19 @@ export default function EditProductPage({
   useEffect(() => {
     if (!id) return;
     fetch(`/api/products/${id}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then(setProduct)
+      .then((res) => {
+        if (res.status === 401) {
+          router.push(`/login?redirect=/products/${id}/edit`);
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then((data) => {
+        if (data) setProduct(data);
+      })
       .catch(() => setProduct(null))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, router]);
 
   const handleSubmit = async (data: {
     name: string;
@@ -41,6 +49,10 @@ export default function EditProductPage({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (res.status === 401) {
+      router.push(`/login?redirect=/products/${id}/edit`);
+      return;
+    }
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       throw new Error(json.error ?? "Failed to update product");
